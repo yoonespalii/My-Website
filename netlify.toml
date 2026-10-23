@@ -1,0 +1,4 @@
+# Netlify-Einstellungen: kein Build-Schritt, der Hauptordner ist die Seite.
+[build]
+  publish = "."
+  command = ""
