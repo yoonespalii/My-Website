@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Website-Werkstatt</title>
+  <meta name="description" content="Vorführseite des Website-Kits: Scroll-Animationen, Hero-Sequenz, Zähler, Laufband und Hover-Effekte — alles in reinem HTML, CSS und JavaScript.">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="kit/base.css">
+  <link rel="stylesheet" href="kit/animations.css">
+
+  <style>
+    /* Nur das, was DIESE Seite braucht. Variablen überschreiben, Rest aus dem Kit. */
+    :root {
+      --farbe-hintergrund: #edece7;
+      --farbe-flaeche: #f7f6f2;
+      --farbe-text: #15171c;
+      --farbe-text-leise: #5b5f68;
+      --farbe-linie: #cfcdc5;
+      --farbe-akzent: #1f3fd2;
+      --farbe-akzent-text: #ffffff;
+    }
+
+    /* Kopfzeile */
+    .kopf { padding-block: var(--raum-4); }
+    .kopf .seite { display: flex; justify-content: space-between; align-items: center; gap: var(--raum-6); }
+    .marke { font-family: var(--schrift-display); font-weight: 700; text-decoration: none; font-size: var(--groesse-mittel); }
+    .kopf nav { display: flex; gap: var(--raum-6); }
+    @media (max-width: 40em) { .kopf nav { display: none; } }
+
+    /* Hero: die eine laute Stelle der Seite */
+    .hero { padding-block: var(--raum-24) var(--raum-16); }
+    .hero h1 { max-width: 14ch; font-size: clamp(3rem, 9vw, 7.5rem); font-weight: 700; letter-spacing: -0.03em; }
+    .hero p { font-size: var(--groesse-mittel); max-width: 38ch; }
+    .hero .zeile { margin-top: var(--raum-8); }
+
+    /* Hintergrundform, die langsam schwebt */
+    .hero { position: relative; isolation: isolate; overflow: hidden; }   /* Kreis darf nicht seitlich überstehen */
+    .kreis {
+      position: absolute; z-index: -1; right: -8vw; top: 10%;
+      width: clamp(14rem, 36vw, 30rem); aspect-ratio: 1; border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, #4f6bff, var(--farbe-akzent) 60%, #14279a);
+      opacity: .9;
+    }
+    @media (max-width: 40em) { .kreis { top: -4rem; right: -30vw; width: 20rem; opacity: .5; } }
+
+    /* Laufband */
+    .band { padding-block: var(--raum-6); border-block: 1px solid var(--farbe-linie); }
+    .band span { font-family: var(--schrift-display); font-size: var(--groesse-gross); font-weight: 500; white-space: nowrap; }
+
+    /* Zahlen */
+    .zahlen { display: grid; gap: var(--raum-8); grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); }
+    .zahl { font-family: var(--schrift-display); font-size: clamp(2.5rem, 6vw, 4.5rem); font-weight: 600; line-height: 1; }
+    .zahlen p { margin-top: var(--raum-2); }
+
+    /* Bausteine-Raster */
+    .baustein {
+      background: var(--farbe-flaeche); border-radius: var(--radius);
+      padding: var(--raum-8); min-height: 14rem;
+      display: flex; flex-direction: column; justify-content: space-between; gap: var(--raum-6);
+    }
+    .raster { grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr)); }  /* ergibt 3 × 2 auf dem Desktop */
+    .baustein h3 { margin-bottom: var(--raum-2); }
+    .baustein code {
+      font-size: var(--groesse-klein); color: var(--farbe-akzent);
+      background: color-mix(in srgb, var(--farbe-akzent) 8%, transparent);
+      padding: .15em .45em; border-radius: var(--radius-klein);
+    }
+
+    /* Zwei Spalten für Text + Kippkarte */
+    .zweispaltig { display: grid; gap: var(--raum-12); grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr)); align-items: center; }
+    .karte-3d {
+      background: var(--farbe-text); color: var(--farbe-hintergrund);
+      border-radius: var(--radius); padding: var(--raum-12) var(--raum-8);
+      aspect-ratio: 4 / 3; display: grid; align-content: end;
+    }
+    .karte-3d h3 { font-size: var(--groesse-xl); color: #fff; }
+
+    /* Fußzeile */
+    footer { padding-block: var(--raum-12); border-top: 1px solid var(--farbe-linie); }
+  </style>
+</head>
+<body>
+  <div class="fortschritt" aria-hidden="true"></div>
+
+  <header class="kopf nav-fest">
+    <div class="seite">
+      <a class="marke" href="#">Werkstatt</a>
+      <nav aria-label="Hauptnavigation">
+        <a class="link-wachsend" href="#bausteine">Bausteine</a>
+        <a class="link-wachsend" href="#regeln">Regeln</a>
+        <a class="link-wachsend" href="docs/animationen.md">Anleitung</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <!-- HERO: einzige Lade-Sequenz der Seite. Jede Zeile der Überschrift fährt hoch,
+         danach kommen Absatz und Knöpfe. -->
+    <section class="hero">
+      <div class="kreis schwebt" aria-hidden="true"></div>
+      <div class="seite">
+        <h1>
+          <span class="zeile-maske"><span>Websites,</span></span>
+          <span class="zeile-maske"><span>die sich</span></span>
+          <span class="zeile-maske"><span>bewegen.</span></span>
+        </h1>
+        <div class="hero-sequenz" style="--start: 3">
+          <p style="margin-top: var(--raum-8)">Dieses Kit ist die Basis für jede Seite in diesem Repo: eine Handvoll CSS-Klassen und ein kleines Skript, mit denen Animationen gut aussehen, ohne die Seite zu überladen.</p>
+          <div class="zeile">
+            <a class="knopf" href="#bausteine">Bausteine ansehen</a>
+            <a class="knopf knopf--leise" href="docs/animationen.md">Wie man es benutzt</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- LAUFBAND: Inhalt steht zweimal drin, damit die Schleife nahtlos ist -->
+    <div class="band marquee" aria-label="Enthaltene Techniken">
+      <div class="marquee__spur">
+        <span>Scroll-Reveal</span><span>Gestaffelte Gruppen</span><span>Hero-Sequenz</span><span>Zähler</span><span>3D-Kippen</span><span>Laufband</span><span>Kompakte Navigation</span><span>Fortschrittsbalken</span>
+        <span aria-hidden="true">Scroll-Reveal</span><span aria-hidden="true">Gestaffelte Gruppen</span><span aria-hidden="true">Hero-Sequenz</span><span aria-hidden="true">Zähler</span><span aria-hidden="true">3D-Kippen</span><span aria-hidden="true">Laufband</span><span aria-hidden="true">Kompakte Navigation</span><span aria-hidden="true">Fortschrittsbalken</span>
+      </div>
+    </div>
+
+    <!-- ZAHLEN: zählen hoch, sobald sie ins Bild kommen -->
+    <section class="abschnitt">
+      <div class="seite zahlen" data-reveal-group>
+        <div>
+          <div class="zahl"><span data-zaehler="0" data-suffix=" kB">0</span></div>
+          <p class="leise">Bibliotheken, die geladen werden. Alles ist reines CSS und Vanilla-JavaScript.</p>
+        </div>
+        <div>
+          <div class="zahl"><span data-zaehler="12">0</span></div>
+          <p class="leise">Klassen und Attribute, mit denen man auskommt. Weniger zu lernen, weniger zu vergessen.</p>
+        </div>
+        <div>
+          <div class="zahl"><span data-zaehler="2" data-suffix=" Eigenschaften">0</span></div>
+          <p class="leise">werden animiert: <em>transform</em> und <em>opacity</em>. Darum ruckelt nichts, auch nicht auf alten Handys.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- BAUSTEINE: eine gestaffelte Gruppe — die Karten erscheinen nacheinander -->
+    <section class="abschnitt" id="bausteine">
+      <div class="seite fluss-gross">
+        <div data-reveal>
+          <h2>Was drin ist</h2>
+          <p class="leise" style="margin-top: var(--raum-3)">Jeder Baustein ist ein Attribut oder eine Klasse. Du schreibst normales HTML und hängst es dran.</p>
+        </div>
+
+        <div class="raster" data-reveal-group>
+          <article class="baustein hebt">
+            <code>data-reveal="hoch"</code>
+            <div><h3>Einblenden beim Scrollen</h3><p class="leise klein">Von unten, links, rechts, als Zoom oder als Wischer. Einmal pro Element, dann bleibt es stehen.</p></div>
+          </article>
+          <article class="baustein hebt">
+            <code>data-reveal-group</code>
+            <div><h3>Staffeln</h3><p class="leise klein">Kinder einer Gruppe erscheinen im Abstand von 90 ms — genau wie diese Karten gerade.</p></div>
+          </article>
+          <article class="baustein hebt">
+            <code>.hero-sequenz</code>
+            <div><h3>Der Ladeauftritt</h3><p class="leise klein">Einmal pro Seite, ganz oben. Der Moment, an dem sich eine Seite teuer anfühlt oder nicht.</p></div>
+          </article>
+          <article class="baustein hebt">
+            <code>data-zaehler="1200"</code>
+            <div><h3>Zahlen zählen hoch</h3><p class="leise klein">Mit deutscher Formatierung (1.200) und optionalem Suffix. Startet, wenn die Zahl im Bild ist.</p></div>
+          </article>
+          <article class="baustein hebt">
+            <code>.hebt · .kippt · .zoom-rahmen</code>
+            <div><h3>Antworten auf die Maus</h3><p class="leise klein">Anheben, zum Zeiger kippen, Bild heranzoomen. Bewegung, die zeigt, dass etwas klickbar ist.</p></div>
+          </article>
+          <article class="baustein hebt">
+            <code>.marquee · .nav-fest · .fortschritt</code>
+            <div><h3>Seitenweite Effekte</h3><p class="leise klein">Laufband, Navigation, die beim Scrollen kompakt wird, und der blaue Balken oben.</p></div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- REGELN + KIPPKARTE -->
+    <section class="abschnitt" id="regeln">
+      <div class="seite zweispaltig">
+        <div class="fluss" data-reveal="links">
+          <h2>Weniger ist der Trick</h2>
+          <p>Fast jede Website, die billig wirkt, wirkt so, weil sich zu viel bewegt. Das Kit zwingt zu nichts, aber die Regeln in <code>CLAUDE.md</code> schon: ein inszenierter Moment beim Laden, zwei bis vier Scroll-Einblendungen pro Seite, und sonst bewegt sich nur, was der Besucher anfasst.</p>
+          <p>Wer in den Systemeinstellungen „Bewegung reduzieren" aktiviert hat, sieht die Seite komplett ohne Animationen — vollständig und ohne dass etwas fehlt.</p>
+          <p><a class="link-wachsend" href="docs/design-regeln.md">Alle Design-Regeln lesen</a></p>
+        </div>
+        <div class="karte-3d kippt" data-reveal="zoom" data-kipp-staerke="7">
+          <p class="klein" style="opacity:.6">Beweg die Maus über diese Karte</p>
+          <h3>Sie folgt dir — ein bisschen.</h3>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="seite zeile" style="justify-content: space-between">
+      <span class="klein leise">Website-Werkstatt von Yoones</span>
+      <a class="klein link-wachsend" href="https://github.com/yoonespalii/My-Website">Quellcode auf GitHub</a>
+    </div>
+  </footer>
+
+  <script src="kit/animations.js"></script>
+</body>
+</html>
